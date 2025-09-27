@@ -4,4 +4,8 @@ python-dotenv
 numpy
 pandas
 scikit-learn
-google-genai
+google-genaipython-multipar
+supabase
+
+
+

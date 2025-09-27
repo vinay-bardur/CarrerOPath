@@ -1,56 +1,113 @@
-import React, { useState } from 'react';
-import Quiz from './components/Quiz';
-import Results from './components/Results';
+import React, { useState, useEffect } from "react";
+import Home from "./components/Home";
+import UserDetails from "./components/UserDetails";
+import Quiz from "./components/Quiz";
+import Results from "./components/Results";
 
 function App() {
-  // This state holds the results from the backend after quiz submission
-  const [quizResult, setQuizResult] = useState(null);
+  const [currentPage, setCurrentPage] = useState('home');
+  const [userDetails, setUserDetails] = useState(null);
 
-  // Function to handle quiz completion, passed down to the Quiz component
-  const handleQuizComplete = (resultData) => {
-    setQuizResult(resultData);
+  // Check if user has completed details on app load
+  useEffect(() => {
+    const savedDetails = localStorage.getItem('userDetails');
+    if (savedDetails) {
+      setUserDetails(JSON.parse(savedDetails));
+    }
+
+    // Check URL path to determine page
+    const path = window.location.pathname;
+    if (path === '/results') {
+      setCurrentPage('results');
+    } else if (path === '/quiz') {
+      setCurrentPage('quiz');
+    } else if (path === '/details') {
+      setCurrentPage('details');
+    } else {
+      setCurrentPage('home');
+    }
+  }, []);
+
+  // Navigation handlers
+  const handleGetStarted = () => {
+    setCurrentPage('details');
+    window.history.pushState({}, '', '/details');
   };
 
-  // Function to restart the quiz, passed down to the Results component
-  const handleRestartQuiz = () => {
-    setQuizResult(null);
+  const handleContinueToQuiz = (details) => {
+    setUserDetails(details);
+    setCurrentPage('quiz');
+    window.history.pushState({}, '', '/quiz');
+  };
+
+  const handleQuizComplete = () => {
+    setCurrentPage('results');
+    window.history.pushState({}, '', '/results');
+  };
+
+  const handleStartNewAssessment = () => {
+    // Clear stored data
+    localStorage.removeItem('userDetails');
+    localStorage.removeItem('careerRecommendations');
+    setUserDetails(null);
+    setCurrentPage('home');
+    window.history.pushState({}, '', '/');
+  };
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/results') {
+        setCurrentPage('results');
+      } else if (path === '/quiz') {
+        setCurrentPage('quiz');
+      } else if (path === '/details') {
+        setCurrentPage('details');
+      } else {
+        setCurrentPage('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Render current page
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <Home onGetStarted={handleGetStarted} />;
+      
+      case 'details':
+        return <UserDetails onContinueToQuiz={handleContinueToQuiz} />;
+      
+      case 'quiz':
+        return (
+          <Quiz 
+            userDetails={userDetails} 
+            onQuizComplete={handleQuizComplete} 
+          />
+        );
+      
+      case 'results':
+        return (
+          <Results 
+            userDetails={userDetails}
+            onStartNewAssessment={handleStartNewAssessment}
+          />
+        );
+      
+      default:
+        return <Home onGetStarted={handleGetStarted} />;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Navigation / Header Bar - Apple-style */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">CareerPath</h1>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                {quizResult ? 'Your Results' : 'Find Your Path in Tech'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        {quizResult ? (
-          <Results result={quizResult.result} userName={quizResult.userName} onRestart={handleRestartQuiz} />
-        ) : (
-          <Quiz onQuizComplete={handleQuizComplete} />
-        )}
-      </main>
-
-      {/* Subtle Footer - Apple-style */}
-      <footer className="mt-16 border-t border-gray-200/50">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <p className="text-center text-sm text-gray-500">
-            Discover your ideal tech career. Built with purpose.
-          </p>
-        </div>
-      </footer>
+    <div className="App">
+      {renderCurrentPage()}
     </div>
   );
 }
 
-export default App
+export default App;

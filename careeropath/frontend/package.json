@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "axios": "^1.11.0",
+    "framer-motion": "^12.23.22",
+    "howler": "^2.2.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.2"
