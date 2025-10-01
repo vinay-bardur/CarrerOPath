@@ -102,7 +102,7 @@ export default function Auth({ onAuthSuccess }) {
           <div className="w-32 h-32 mx-auto mb-8 flex items-center justify-center">
             <img 
               src={logo} 
-              alt="CareerPath Logo" 
+              alt="CareerOPath Logo" 
               className="w-full h-full object-contain"
             />
           </div>
@@ -125,7 +125,7 @@ export default function Auth({ onAuthSuccess }) {
         >
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold text-gray-900 mb-2 flex items-center justify-center">
-              CareerPath
+              Career0Path
               <img src={bluecap} alt="CareerPath" className="w-8 h-8 ml-2" />
             </h2>
             <p className="text-gray-600">
