@@ -1,16 +1,41 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "./lib/supabase";
-import Home from "./components/Home";
+import React, { useEffect, useState } from "react";
 import Auth from "./components/Auth";
-import UserDetails from "./components/UserDetails";
+import Dashboard from "./components/Dashboard";
+import Home from "./components/Home";
 import Quiz from "./components/Quiz";
 import Results from "./components/Results";
+import UserDetails from "./components/UserDetails";
+import { supabase } from "./lib/supabase";
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [userDetails, setUserDetails] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previousResults, setPreviousResults] = useState(null);
+
+  // Function to check for previous quiz results via backend API
+  const checkPreviousResults = async (userId) => {
+    try {
+      console.log('Fetching results for user ID:', userId);
+      const response = await fetch(`http://localhost:8000/user/${userId}/results`);
+      console.log('API Response status:', response.status);
+      
+      const result = await response.json();
+      console.log('API Response data:', result);
+      
+      if (result.success) {
+        console.log('Previous results found:', result.data);
+        return result.data;
+      } else {
+        console.log('No previous results found:', result.message);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error checking previous results:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,26 +66,52 @@ function App() {
         setCurrentPage('details');
       } else if (path === '/auth') {
         setCurrentPage('auth');
+      } else if (path === '/dashboard') {
+        setCurrentPage('dashboard');
       } else {
         setCurrentPage('home');
       }
     }
   }, [loading]);
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
     if (user) {
-      setCurrentPage('details');
-      window.history.pushState({}, '', '/details');
+      // Check for previous results first
+      console.log('Checking previous results for user:', user.id);
+      const results = await checkPreviousResults(user.id);
+      setPreviousResults(results);
+      
+      if (results) {
+        console.log('Found previous results, going to dashboard');
+        setCurrentPage('dashboard');
+        window.history.pushState({}, '', '/dashboard');
+      } else {
+        console.log('No previous results, going to details');
+        setCurrentPage('details');
+        window.history.pushState({}, '', '/details');
+      }
     } else {
       setCurrentPage('auth');
       window.history.pushState({}, '', '/auth');
     }
   };
 
-  const handleAuthSuccess = (authUser) => {
+  const handleAuthSuccess = async (authUser) => {
     setUser(authUser);
-    setCurrentPage('details');
-    window.history.pushState({}, '', '/details');
+    
+    // Check for previous results
+    const results = await checkPreviousResults(authUser.id);
+    setPreviousResults(results);
+    
+    if (results) {
+      // User has previous results, go to dashboard
+      setCurrentPage('dashboard');
+      window.history.pushState({}, '', '/dashboard');
+    } else {
+      // New user, go to user details
+      setCurrentPage('details');
+      window.history.pushState({}, '', '/details');
+    }
   };
 
   const handleContinueToQuiz = async (details) => {
@@ -94,12 +145,22 @@ function App() {
     window.history.pushState({}, '', '/results');
   };
 
+  const handleViewPrevious = () => {
+    setCurrentPage('results');
+    window.history.pushState({}, '', '/results');
+  };
+
+  const handleTakeNewQuiz = () => {
+    setCurrentPage('details');
+    window.history.pushState({}, '', '/details');
+  };
+
   const handleStartNewAssessment = async () => {
     localStorage.removeItem('userDetails');
     localStorage.removeItem('careerRecommendations');
     setUserDetails(null);
-    setCurrentPage('home');
-    window.history.pushState({}, '', '/');
+    setCurrentPage('dashboard');
+    window.history.pushState({}, '', '/dashboard');
   };
 
   const handleSignOut = async () => {
@@ -122,6 +183,8 @@ function App() {
         setCurrentPage('details');
       } else if (path === '/auth') {
         setCurrentPage('auth');
+      } else if (path === '/dashboard') {
+        setCurrentPage('dashboard');
       } else {
         setCurrentPage('home');
       }
@@ -150,6 +213,17 @@ function App() {
       case 'auth':
         return <Auth onAuthSuccess={handleAuthSuccess} />;
       
+      case 'dashboard':
+        return (
+          <Dashboard 
+            user={user}
+            previousResults={previousResults}
+            onViewPrevious={handleViewPrevious}
+            onTakeNewQuiz={handleTakeNewQuiz}
+            onSignOut={handleSignOut}
+          />
+        );
+      
       case 'details':
         return <UserDetails onContinueToQuiz={handleContinueToQuiz} user={user} />;
       
@@ -169,6 +243,7 @@ function App() {
             userDetails={userDetails}
             onStartNewAssessment={handleStartNewAssessment}
             user={user}
+            previousResults={previousResults}
           />
         );
       
