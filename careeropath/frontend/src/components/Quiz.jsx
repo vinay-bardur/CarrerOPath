@@ -221,12 +221,12 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4 relative">
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center ${isMobile ? 'p-3' : 'p-4'} relative`}>
       {user && onSignOut && (
-        <div className="absolute top-6 right-6 z-10">
+        <div className={`absolute ${isMobile ? 'top-4 right-4' : 'top-6 right-6'} z-10`}>
           <button
             onClick={onSignOut}
-            className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-[30px] shadow-lg hover:shadow-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
+            className={`${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3'} bg-white/90 backdrop-blur-sm border border-gray-200 text-gray-700 font-medium rounded-full shadow-sm hover:shadow-md hover:bg-white transition-all duration-300`}
           >
             Sign Out
           </button>
@@ -234,72 +234,72 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
       )}
 
       <motion.div
-        className="w-full max-w-4xl"
+        className={`w-full ${isMobile ? 'max-w-sm' : 'max-w-4xl'}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <motion.div
-          className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border border-blue-100"
+          className={`bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg overflow-hidden ${isMobile ? 'mb-4' : 'mb-8'} border border-white/20`}
           layout
         >
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+          <div className={`bg-gradient-to-r from-blue-500 to-blue-600 ${isMobile ? 'p-4' : 'p-6'} text-white`}>
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-semibold">CareerOPath</h1>
-              <span className="text-blue-100">{currentQuestion + 1} of {total}</span>
+              <h1 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-semibold`}>CareerOPath</h1>
+              <span className={`text-blue-100 ${isMobile ? 'text-sm' : 'text-base'}`}>{currentQuestion + 1} of {total}</span>
             </div>
           </div>
           
-          <div className="p-6">
-            <div className="w-full bg-blue-100 rounded-full h-3 mb-3">
+          <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+            <div className={`w-full bg-blue-100 rounded-full ${isMobile ? 'h-2' : 'h-3'} mb-3`}>
               <motion.div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full shadow-sm"
+                className={`bg-gradient-to-r from-blue-500 to-blue-600 ${isMobile ? 'h-2' : 'h-3'} rounded-full shadow-sm`}
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercentage}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               ></motion.div>
             </div>
-            <p className="text-blue-600 font-medium text-sm">{progressPercentage}% Complete • {answeredCount} of {total} answered</p>
+            <p className={`text-blue-600 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{progressPercentage}% Complete • {answeredCount} of {total} answered</p>
           </div>
         </motion.div>
         {questions[currentQuestion] && (
           <motion.div
-            className="bg-white rounded-3xl shadow-xl p-8 border border-blue-100"
+            className={`bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg ${isMobile ? 'p-5' : 'p-8'} border border-white/20`}
             key={currentQuestion}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h2 className="text-2xl font-medium text-gray-900 mb-10 text-center leading-relaxed max-w-3xl mx-auto">
+            <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-medium text-gray-900 ${isMobile ? 'mb-6' : 'mb-10'} text-center leading-relaxed max-w-3xl mx-auto`}>
               {questions[currentQuestion].q || questions[currentQuestion].text}
             </h2>
-            <div className="space-y-4 max-w-3xl mx-auto">
+            <div className={`${isMobile ? 'space-y-3' : 'space-y-4'} max-w-3xl mx-auto`}>
               {(questions[currentQuestion].options || []).map((option, index) => {
                 const selected = answers[currentQuestionId] === index;
                 return (
                   <motion.button
                     key={index}
                     onClick={() => handleAnswer(currentQuestionId, index)}
-                    className={`w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 ${
+                    className={`w-full text-left ${isMobile ? 'p-4' : 'p-6'} rounded-2xl border transition-all duration-300 ${
                       selected 
-                        ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 shadow-lg transform scale-[1.02]' 
-                        : 'border-gray-200 bg-white text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md'
+                        ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 shadow-md' 
+                        : 'border-gray-200 bg-white/90 text-gray-800 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm'
                     }`}
                     whileTap={{ scale: 0.98 }}
-                    whileHover={{ scale: selected ? 1.02 : 1.01 }}
+                    whileHover={{ scale: isMobile ? 1 : (selected ? 1.01 : 1.005) }}
                   >
                     <div className="flex items-center">
-                      <div className={`w-5 h-5 rounded-full border-2 mr-4 flex-shrink-0 transition-all ${
-                        selected ? 'border-blue-500 bg-blue-500 shadow-md' : 'border-gray-300'
+                      <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} rounded-full border-2 ${isMobile ? 'mr-3' : 'mr-4'} flex-shrink-0 transition-all ${
+                        selected ? 'border-blue-500 bg-blue-500 shadow-sm' : 'border-gray-300'
                       }`}>
                         {selected && (
                           <div className="w-full h-full rounded-full bg-white transform scale-50"></div>
                         )}
                       </div>
-                      <span className="flex-1 text-base leading-relaxed">{option}</span>
+                      <span className={`flex-1 ${isMobile ? 'text-sm' : 'text-base'} leading-relaxed`}>{option}</span>
                       {selected && (
-                        <div className="ml-4 text-blue-500">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <div className={`${isMobile ? 'ml-2' : 'ml-4'} text-blue-500`}>
+                          <svg className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
@@ -324,7 +324,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
           </motion.div>
         )}
         <motion.div
-          className="flex justify-between mt-8"
+          className={`flex justify-between ${isMobile ? 'mt-6' : 'mt-8'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -332,7 +332,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
           <button
             onClick={handlePrev}
             disabled={currentQuestion === 0}
-            className="px-8 py-4 text-gray-600 bg-white border-2 border-gray-200 rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+            className={`${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} text-gray-600 bg-white/90 border border-gray-200 rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:shadow-sm transition-all font-medium`}
           >
             Previous
           </button>
@@ -341,7 +341,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
             <button
               onClick={handleNext}
               disabled={!hasAnsweredCurrent}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg transition-all font-medium"
+              className={`${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-md transition-all font-medium`}
             >
               Next
             </button>
@@ -349,17 +349,17 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
             <motion.button
               onClick={handleSubmit}
               disabled={!hasAnsweredCurrent || isSubmitting}
-              className="px-8 py-4 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg transition-all font-medium"
-              whileHover={{ scale: hasAnsweredCurrent ? 1.05 : 1 }}
+              className={`${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} bg-gradient-to-r from-green-600 to-green-800 text-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-md transition-all font-medium`}
+              whileHover={{ scale: hasAnsweredCurrent ? (isMobile ? 1.02 : 1.05) : 1 }}
               whileTap={{ scale: 0.95 }}
             >
               {isSubmitting ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className={`animate-spin -ml-1 mr-3 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white`} fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Analyzing your path...
+                  {isMobile ? 'Analyzing...' : 'Analyzing your path...'}
                 </span>
               ) : (
                 'Get Results'
