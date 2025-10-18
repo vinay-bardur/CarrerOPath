@@ -124,12 +124,13 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
           name: userDetails?.name || "Anonymous",
           age: userDetails?.age || 20,
           gender: userDetails?.gender || "Other",
-          google_sub: "demo_user"
+          google_sub: user?.id || "demo_user"  // Use actual user ID
         },
         answers: answers
       };
 
-      const response = await fetch('http://localhost:8000/submit-quiz', {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/submit-quiz`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

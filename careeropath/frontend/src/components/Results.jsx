@@ -1,17 +1,29 @@
 import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
 
-export default function Results({ userDetails, onStartNewAssessment }) {
+export default function Results({ userDetails, onStartNewAssessment, user, previousResults }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
+    // Check if we have previous results passed as props (from dashboard)
+    if (previousResults && previousResults.recommendations) {
+      console.log('Using previous results:', previousResults);
+      setResult(previousResults.recommendations);
+      setTimeout(() => {
+        setShowResults(true);
+        setLoading(false);
+      }, 1000);
+      return;
+    }
+    
+    // Otherwise check localStorage for fresh results
     const savedResults = localStorage.getItem('careerRecommendations');
     if (savedResults) {
       try {
         const parsedResults = JSON.parse(savedResults);
-        console.log('Loaded results:', parsedResults);
+        console.log('Loaded results from localStorage:', parsedResults);
         setResult(parsedResults);
         
         setTimeout(() => {
@@ -25,7 +37,7 @@ export default function Results({ userDetails, onStartNewAssessment }) {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [previousResults]);
 
   const getUserGreeting = () => {
     if (userDetails?.name) {
@@ -45,7 +57,7 @@ export default function Results({ userDetails, onStartNewAssessment }) {
   const roadmapMap = {
     "UX/UI Developer": "https://roadmap.sh/ux-design",
     "UI/UX Designer": "https://roadmap.sh/ux-design",
-    "Frontend Developer": "https://roadmap.sh/frontend", 
+    "Frontend Developer": "https://roadmap.sh/frontend",
     "Backend Developer": "https://roadmap.sh/backend",
     "Full Stack Developer": "https://roadmap.sh/full-stack",
     "Data Analyst": "https://roadmap.sh/data-analyst",

@@ -8,6 +8,7 @@ import json
 import pandas as pd
 from sklearn.cluster import KMeans
 import google.generativeai as genai
+from utils.db import supabase
 
 load_dotenv('.env')
 print("=== ENVIRONMENT DEBUG ===")
@@ -19,14 +20,19 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    print("✅ Gemini configured successfully with stable SDK")
+    print("[OK] Gemini configured successfully with stable SDK")
 else:
-    print("❌ GEMINI_API_KEY not found - using mock data")
+    print("[ERROR] GEMINI_API_KEY not found - using mock data")
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173",
+        "https://*.vercel.app",
+        "https://careeropath.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -210,8 +216,12 @@ class QuizSubmit(BaseModel):
     user: UserInfo
     answers: dict
 
-USER_STORE = {}
-QUIZ_RESULTS = {}
+class UserCreate(BaseModel):
+    auth_id: str
+    email: str
+    name: str
+    age: int
+    gender: str
 
 @app.get("/")
 def read_root():
@@ -229,13 +239,42 @@ def health_check():
 def get_quiz():
     return {"quiz": STATIC_QUIZ}
 
+@app.get("/user/{user_id}/results")
+def get_user_results(user_id: str):
+    try:
+        result = supabase.table('quiz_results').select('*').eq('user_id', user_id).order('completed_at', desc=True).limit(1).execute()
+        
+        if result.data:
+            return {"success": True, "data": result.data[0]}
+        else:
+            return {"success": False, "message": "No results found"}
+    except Exception as e:
+        print(f"[ERROR] Error fetching user results: {str(e)}")
+        return {"success": False, "message": str(e)}
+
+@app.post("/user")
+def create_user(user_data: UserCreate):
+    try:
+        result = supabase.table('users').upsert({
+            'auth_id': user_data.auth_id,
+            'email': user_data.email,
+            'name': user_data.name,
+            'age': user_data.age,
+            'gender': user_data.gender
+        }).execute()
+        
+        return {"success": True, "data": result.data}
+    except Exception as e:
+        print(f"[ERROR] Error creating user: {str(e)}")
+        return {"success": False, "message": str(e)}
+
 def get_gemini_recommendation(user_info, answers):
     try:
         if not GEMINI_API_KEY:
-            print("❌ No API key found - using fallback")
+            print("[ERROR] No API key found - using fallback")
             return get_fallback_recommendation()
         
-        print("🔄 Starting Gemini API call...")
+        print("[INFO] Starting Gemini API call...")
         
         prompt = f"""
         You are an experienced tech career mentor in India who has helped hundreds of students land their first tech jobs. 
@@ -278,21 +317,21 @@ def get_gemini_recommendation(user_info, answers):
         Focus on Indian market reality. Companies: TCS, Infosys, Wipro, HCL, Accenture, Cognizant.
         """
         
-        print(f"📝 Prompt length: {len(prompt)} characters")
+        print(f"[INFO] Prompt length: {len(prompt)} characters")
         
         try:
             model = genai.GenerativeModel('gemma-3-27b-it')
-            print("🤖 Using model: gemma-3-27b-it (FREE open model)")
+            print("[INFO] Using model: gemma-3-27b-it (FREE open model)")
         except:
             model = genai.GenerativeModel('gemini-2.0-flash-lite')
-            print("🤖 Using model: gemini-2.0-flash-lite (cheapest paid model)")
+            print("[INFO] Using model: gemini-2.0-flash-lite (cheapest paid model)")
         
         response = model.generate_content(prompt)
-        print("✅ Got response from Gemini")
+        print("[OK] Got response from Gemini")
         
         response_text = response.text.strip()
-        print(f"📄 Raw response length: {len(response_text)} characters")
-        print(f"🔍 First 200 chars: {response_text[:200]}...")
+        print(f"[INFO] Raw response length: {len(response_text)} characters")
+        print(f"[INFO] First 200 chars: {response_text[:200]}...")
         
         if response_text.startswith('```json'):
             response_text = response_text[7:]
@@ -300,19 +339,19 @@ def get_gemini_recommendation(user_info, answers):
             response_text = response_text[:-3]
         response_text = response_text.strip()
         
-        print(f"🧹 Cleaned response length: {len(response_text)} characters")
+        print(f"[INFO] Cleaned response length: {len(response_text)} characters")
         
         result = json.loads(response_text)
-        print("✅ Successfully parsed JSON response")
+        print("[OK] Successfully parsed JSON response")
         return result
         
     except json.JSONDecodeError as e:
-        print(f"❌ JSON Parse Error: {e}")
-        print(f"📄 Response text: {response_text[:500]}...")
+        print(f"[ERROR] JSON Parse Error: {e}")
+        print(f"[INFO] Response text: {response_text[:500]}...")
         return get_fallback_recommendation()
     except Exception as e:
-        print(f"❌ Gemini API Error: {str(e)}")
-        print(f"❌ Error type: {type(e).__name__}")
+        print(f"[ERROR] Gemini API Error: {str(e)}")
+        print(f"[ERROR] Error type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         return get_fallback_recommendation()
@@ -329,27 +368,31 @@ def get_fallback_recommendation():
 @app.post("/submit-quiz")
 def submit_quiz(payload: QuizSubmit):
     try:
-        print(f"📥 Received quiz submission from: {payload.user.name}")
-        
+        print(f"[INFO] Received quiz submission from: {payload.user.name}")
         
         recommendations = get_gemini_recommendation(payload.user, payload.answers)
         
+        # Save to Supabase (use auth_id from frontend)
+        try:
+            result = supabase.table('quiz_results').insert({
+                'user_id': payload.user.google_sub,  # This should be the auth.users.id
+                'answers': payload.answers,
+                'recommendations': recommendations
+            }).execute()
+            print(f"[OK] Saved to database: {result}")
+        except Exception as db_error:
+            print(f"[WARNING] Database save failed: {db_error}")
         
-        uid = payload.user.google_sub
-        QUIZ_RESULTS[uid] = {
-            "answers": payload.answers,
-            "ai": recommendations
-        }
-        
-        print(f"✅ Successfully generated recommendations")
+        print(f"[OK] Successfully generated recommendations")
         return recommendations
         
     except Exception as e:
-        print(f"❌ Error in submit_quiz: {str(e)}")
+        print(f"[ERROR] Error in submit_quiz: {str(e)}")
         traceback.print_exc()
         
         return get_fallback_recommendation()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
