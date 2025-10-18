@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Production API Test</title>
+</head>
+<body>
+    <h1>Production API Test</h1>
+    <button onclick="testAPI()">Test Production API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            const userId = 'f348a988-a5f3-4bc0-bf1c-84703fcbb1e3';
+            
+            try {
+                const response = await fetch(`https://carreropath.onrender.com/user/${userId}/results`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
