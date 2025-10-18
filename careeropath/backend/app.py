@@ -375,6 +375,8 @@ def get_fallback_recommendation():
 def submit_quiz(payload: QuizSubmit):
     try:
         print(f"[INFO] Received quiz submission from: {payload.user.name}")
+        print(f"[INFO] User ID for database: {payload.user.google_sub}")
+        print(f"[INFO] Answers received: {len(payload.answers)} questions answered")
         
         recommendations = get_gemini_recommendation(payload.user, payload.answers)
         

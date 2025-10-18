@@ -144,25 +144,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
 
       const result = await response.json();
       localStorage.setItem('careerRecommendations', JSON.stringify(result));
-      
-      if (user) {
-        try {
-          const { error } = await supabase
-            .from('quiz_results')
-            .insert({
-              user_id: user.id,
-              answers: answers,
-              recommendations: result,
-              completed_at: new Date().toISOString()
-            });
-
-          if (error) {
-            console.error('Error saving quiz results to Supabase:', error);
-          }
-        } catch (supabaseError) {
-          console.error('Supabase error:', supabaseError);
-        }
-      }
+      console.log('Quiz submitted successfully, backend will handle database save');
       
       playSound('success');
       
