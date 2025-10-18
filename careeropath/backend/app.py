@@ -30,8 +30,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173", 
         "http://127.0.0.1:5173",
-        "https://*.vercel.app",
-        "https://careeropath.vercel.app"
+        "https://carrer-o-path.vercel.app",
+        "https://carrer-o-path-ra8yqpz50-vinay-g-bs-projects.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
