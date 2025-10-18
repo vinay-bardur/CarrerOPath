@@ -382,8 +382,9 @@ def submit_quiz(payload: QuizSubmit):
         
         # Save to Supabase (use auth_id from frontend)
         try:
+            # Use service role to bypass RLS
             result = supabase.table('quiz_results').insert({
-                'user_id': payload.user.google_sub,  # This should be the auth.users.id
+                'user_id': payload.user.google_sub,
                 'answers': payload.answers,
                 'recommendations': recommendations
             }).execute()
