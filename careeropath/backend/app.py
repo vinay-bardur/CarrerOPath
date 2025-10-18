@@ -91,7 +91,7 @@ STATIC_QUIZ = [
     },
     {
         "id": 6,
-        "q": "When learning something new, how do you practise it?",
+        "q": "When learning something new, how do you practice it?",
         "options": [
             "Make a small user interface and tweak the look",
             "Build a tiny feature from start to finish on my laptop",
@@ -277,12 +277,18 @@ def get_gemini_recommendation(user_info, answers):
         print("[INFO] Starting Gemini API call...")
         
         prompt = f"""
-        You are an experienced tech career mentor in India who has helped hundreds of students land their first tech jobs. 
-        You're having a friendly conversation with {user_info.name}, a {user_info.age}-year-old student.
+        You are an expert tech career advisor. Analyze the quiz responses carefully and provide accurate career recommendations.
         
-        Based on {user_info.name}'s quiz responses, give personalized career advice like you're their older sibling in tech.
+        CRITICAL: Base recommendations ONLY on the actual answers given. Do NOT suggest roles that contradict the user's preferences.
         
         Student: {user_info.name}, {user_info.age} years old, {user_info.gender}
+        
+        ANSWER MAPPING:
+        - Option 0 (first choice) = UI/UX Design focus
+        - Option 1 (second choice) = Backend/Systems focus  
+        - Option 2 (third choice) = Data Science/AI/ML focus
+        - Option 3 (fourth choice) = Cybersecurity focus
+        - Option 4 (fifth choice) = Product Management focus
         
         Quiz Responses:
         """
@@ -295,7 +301,15 @@ def get_gemini_recommendation(user_info, answers):
         
         prompt += f"""
         
-        Respond as a caring mentor would - personal, encouraging, and specific to {user_info.name}. 
+        ANALYSIS RULES:
+        1. Count how many times each option index (0,1,2,3,4) was selected
+        2. The most frequently selected index indicates the primary career path:
+           - Most 0s = UI/UX Designer, Frontend Developer
+           - Most 1s = Backend Developer, Software Engineer, DevOps
+           - Most 2s = Data Scientist, ML Engineer, Data Analyst
+           - Most 3s = Cybersecurity Analyst, Security Engineer
+           - Most 4s = Product Manager, Business Analyst
+        3. Recommend roles that MATCH the dominant pattern
         
         JSON format:
         {{
@@ -303,18 +317,10 @@ def get_gemini_recommendation(user_info, answers):
             "companies": ["Company1", "Company2", "Company3"],
             "salary_range": "₹X-Y LPA for freshers",
             "skills": ["Skill1", "Skill2", "Skill3"],
-            "rationale": "Write like you're talking to {user_info.name} personally - warm, encouraging, specific advice (2-3 lines max)"
+            "rationale": "Hey {user_info.name}, your answers show strong interest in [dominant area]. Perfect fit for someone who consistently chose [pattern]!"
         }}
         
-        For rationale: Sound like a mentor, not a bot. Use phrases like:
-        - "Hey {user_info.name}, based on what I see..."
-        - "You've got the mindset for..."
-        - "I'd recommend starting with..."
-        - "Your interest in X really shows..."
-        - "Perfect fit for someone like you who..."
-        
-        Keep it conversational, specific, and encouraging. No generic corporate speak!
-        Focus on Indian market reality. Companies: TCS, Infosys, Wipro, HCL, Accenture, Cognizant.
+        Companies: TCS, Infosys, Wipro, HCL, Accenture, Cognizant, Microsoft, Google, Amazon.
         """
         
         print(f"[INFO] Prompt length: {len(prompt)} characters")
