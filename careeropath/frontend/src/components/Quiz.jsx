@@ -150,7 +150,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
       
       setTimeout(() => {
         onQuizComplete();
-      }, 1200);
+      }, 800);
       
     } catch (error) {
       console.error('Error submitting quiz:', error);

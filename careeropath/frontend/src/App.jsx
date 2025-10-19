@@ -141,17 +141,10 @@ function App() {
     window.history.pushState({}, '', '/quiz');
   };
 
-  const handleQuizComplete = async () => {
-    // After quiz completion, refresh previous results and go to dashboard
-    if (user) {
-      const results = await checkPreviousResults(user.id);
-      setPreviousResults(results);
-      setCurrentPage('dashboard');
-      window.history.pushState({}, '', '/dashboard');
-    } else {
-      setCurrentPage('results');
-      window.history.pushState({}, '', '/results');
-    }
+  const handleQuizComplete = () => {
+    // After quiz completion, go directly to results page
+    setCurrentPage('results');
+    window.history.pushState({}, '', '/results');
   };
 
   const handleViewPrevious = () => {
