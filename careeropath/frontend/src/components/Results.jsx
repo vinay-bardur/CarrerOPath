@@ -303,20 +303,12 @@ export default function Results({ userDetails, onStartNewAssessment, user, previ
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
         >
-          <div className="flex gap-4 justify-center">
-            <button 
-              onClick={() => window.history.pushState({}, '', '/dashboard') || window.location.reload()}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg border-2 border-green-600 hover:border-green-700"
-            >
-              Continue Journey
-            </button>
-            <button 
-              onClick={onStartNewAssessment}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg border-2 border-blue-600 hover:border-blue-700"
-            >
-              New Assessment
-            </button>
-          </div>
+          <button 
+            onClick={onStartNewAssessment}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg border-2 border-blue-600 hover:border-blue-700"
+          >
+            Start New Assessment
+          </button>
           <p className="text-gray-500 mt-4">Shape Your Future. Designed for You</p>
         </motion.div>
       </motion.div>

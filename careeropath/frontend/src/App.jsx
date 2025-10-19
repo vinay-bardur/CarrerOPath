@@ -161,8 +161,8 @@ function App() {
     localStorage.removeItem('userDetails');
     localStorage.removeItem('careerRecommendations');
     setUserDetails(null);
-    setCurrentPage('dashboard');
-    window.history.pushState({}, '', '/dashboard');
+    setCurrentPage('details');
+    window.history.pushState({}, '', '/details');
   };
 
   const handleSignOut = async () => {
