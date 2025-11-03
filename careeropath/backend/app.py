@@ -237,9 +237,15 @@ def get_quiz():
 @app.get("/user/{user_id}/results")
 def get_user_results(user_id: str):
     try:
-        print(f"[INFO] Fetching results for user: {user_id}")
+        import time
+        start_time = time.time()
+        print(f"[INFO] Fetching results for user: {user_id} at {start_time}")
+        
         result = supabase.table('quiz_results').select('*').eq('user_id', user_id).order('completed_at', desc=True).limit(1).execute()
-        print(f"[INFO] Database query result: {len(result.data) if result.data else 0} records found")
+        
+        end_time = time.time()
+        query_duration = (end_time - start_time) * 1000
+        print(f"[INFO] Database query completed in {query_duration:.2f}ms, found {len(result.data) if result.data else 0} records")
         
         if result.data and len(result.data) > 0:
             print(f"[OK] Found previous results for user {user_id}")

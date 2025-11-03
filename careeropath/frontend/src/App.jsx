@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard";
 import Home from "./components/Home";
@@ -75,27 +75,41 @@ function App() {
     }
   }, [loading]);
 
-  const handleGetStarted = async () => {
-    if (user) {
-      // Check for previous results first
-      console.log('Checking previous results for user:', user.id);
-      const results = await checkPreviousResults(user.id);
-      setPreviousResults(results);
-      
-      if (results) {
-        console.log('Found previous results, going to dashboard');
-        setCurrentPage('dashboard');
-        window.history.pushState({}, '', '/dashboard');
-      } else {
-        console.log('No previous results, going to details');
+  const [submitting, setSubmitting] = useState(false);
+  
+  const handleGetStarted = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    
+    console.log('get_started_begin t:', performance.now());
+    
+    try {
+      if (user && !loading) {
+        // Navigate immediately, fetch in background
         setCurrentPage('details');
         window.history.pushState({}, '', '/details');
+        console.log('navigating_to_details t:', performance.now());
+        
+        // Background fetch for dashboard data
+        setTimeout(async () => {
+          console.log('results_fetch_begin t:', performance.now());
+          const fetchStart = performance.now();
+          
+          const results = await checkPreviousResults(user.id);
+          
+          const fetchEnd = performance.now();
+          console.log('results_fetch_end t:', fetchEnd, 'dt:', fetchEnd - fetchStart, 'ok:', !!results);
+          
+          setPreviousResults(results);
+        }, 0);
+      } else {
+        setCurrentPage('auth');
+        window.history.pushState({}, '', '/auth');
       }
-    } else {
-      setCurrentPage('auth');
-      window.history.pushState({}, '', '/auth');
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }, [user, loading, submitting]);
 
   const handleAuthSuccess = async (authUser) => {
     setUser(authUser);
@@ -147,6 +161,7 @@ function App() {
   };
 
   const handleViewPrevious = () => {
+    console.log('continue_click t0:', performance.now());
     setCurrentPage('results');
     window.history.pushState({}, '', '/results');
   };
