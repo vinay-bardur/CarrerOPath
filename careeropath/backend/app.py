@@ -380,12 +380,16 @@ def submit_quiz(payload: QuizSubmit):
         
         # Save to Supabase (use auth_id from frontend)
         try:
-            result = supabase.table('quiz_results').insert({
-                'user_id': payload.user.google_sub,  # This should be the auth.users.id
-                'answers': payload.answers,
-                'recommendations': recommendations
-            }).execute()
-            print(f"[OK] Saved to database: {result}")
+            user_id = payload.user.google_sub
+            if user_id == "demo_user" or not user_id:
+                print(f"[WARNING] Invalid user_id: {user_id}, skipping database save")
+            else:
+                result = supabase.table('quiz_results').insert({
+                    'user_id': user_id,
+                    'answers': payload.answers,
+                    'recommendations': recommendations
+                }).execute()
+                print(f"[OK] Saved to database: {result}")
         except Exception as db_error:
             print(f"[WARNING] Database save failed: {db_error}")
         

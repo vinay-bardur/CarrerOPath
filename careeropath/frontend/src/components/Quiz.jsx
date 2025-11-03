@@ -124,7 +124,7 @@ export default function Quiz({ userDetails, onQuizComplete, user, onSignOut }) {
           name: userDetails?.name || "Anonymous",
           age: userDetails?.age || 20,
           gender: userDetails?.gender || "Other",
-          google_sub: user?.id || "demo_user"  // Use actual user ID
+          google_sub: user?.id || `demo_${Date.now()}`  // Generate unique ID if no user
         },
         answers: answers
       };
